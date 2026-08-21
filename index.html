@@ -215,18 +215,47 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .eq-guide-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             color: #d4af37;
             text-transform: uppercase;
             font-weight: bold;
         }
+        .threshold-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #252836;
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid #3d4255;
+        }
+        .threshold-wrapper label {
+            font-size: 0.85rem;
+            color: #00d2ff;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .threshold-wrapper input {
+            width: 65px;
+            background: #14161d;
+            color: #fff;
+            border: 1px solid #3d4255;
+            padding: 4px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 3px;
+            outline: none;
+        }
         .eq-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            max-height: 220px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            max-height: 200px;
             overflow-y: auto;
             padding-right: 5px;
         }
@@ -234,19 +263,19 @@
             background: #ffffff;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            padding: 12px;
+            padding: 8px 10px;
             text-align: center;
         }
         .eq-card.cut { border-color: #ef4444; border-width: 3px; }
         .eq-card.boost { border-color: #22c55e; border-width: 3px; }
         .eq-freq { 
-            font-size: 1.7rem; 
+            font-size: 1.3rem; 
             color: #000000; 
             font-weight: bold;
-            margin-bottom: 6px; 
+            margin-bottom: 4px; 
         }
         .eq-gain { 
-            font-size: 2.2rem; 
+            font-size: 1.7rem; 
             font-weight: 900;
             color: #000000; 
         }
@@ -295,11 +324,17 @@
         <div id="dbReadout" class="db-value-large">- - - dB SPL</div>
     </div>
 
-    <!-- Tabella Guida Correzione EQ con font nero e caratteri ingranditi -->
+    <!-- Tabella Guida Correzione EQ con Soglia Manuale -->
     <div id="eqGuidePanel" class="eq-guide-panel">
         <div class="eq-guide-header">
             <span class="eq-guide-title">Tabella Guida Correzione Equalizzatore Impianto</span>
-            <span id="guideStatus" style="font-size: 1.5rem; color: #888;">Esegui un "GRAB" o "POINT ZERO" per generare la guida</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="threshold-wrapper">
+                    <label for="eqThresholdInput">Soglia EQ (dB):</label>
+                    <input type="number" id="eqThresholdInput" value="2.2" step="0.5" min="0.5" max="10.0">
+                </div>
+                <span id="guideStatus" style="font-size: 1.1rem; color: #888;">Esegui un "GRAB" o "POINT ZERO"</span>
+            </div>
         </div>
         <div id="eqGrid" class="eq-grid"></div>
     </div>
@@ -345,6 +380,7 @@
     const dbReadout = document.getElementById('dbReadout');
     const btnPink = document.getElementById('btn-pink');
     const btnWhite = document.getElementById('btn-white');
+    const eqThresholdInput = document.getElementById('eqThresholdInput');
 
     const micKnob = document.getElementById('micKnob');
     const knobPointer = document.getElementById('knobPointer');
@@ -390,6 +426,13 @@
     });
 
     window.addEventListener('touchend', () => { isDraggingKnob = false; });
+
+    // Ricalcola la guida EQ in tempo reale se modifichi la soglia manuale
+    eqThresholdInput.addEventListener('input', () => {
+        if (hasGrabbed) {
+            updateEQGuide();
+        }
+    });
 
     function updateKnobUI() {
         const angle = ((currentMicDb + 20) / 80) * 270 - 135;
@@ -640,8 +683,9 @@
             return;
         }
 
-        guideStatus.textContent = 'Valori indicativi da applicare sull\'EQ dell\'impianto:';
+        guideStatus.textContent = 'Correzioni consigliate:';
         let countAdjustments = 0;
+        const manualThreshold = parseFloat(eqThresholdInput.value) || 2.2;
 
         for (let i = 0; i < numBands; i++) {
             const freq = bandFrequencies[i];
@@ -651,7 +695,8 @@
             if (suggestedGain > 6) suggestedGain = 6;
             if (suggestedGain < -12) suggestedGain = -12;
 
-            if (Math.abs(suggestedGain) >= 1.5) {
+            // Utilizza la soglia inserita manualmente dall'utente
+            if (Math.abs(suggestedGain) >= manualThreshold) {
                 countAdjustments++;
                 const card = document.createElement('div');
                 const isCut = suggestedGain < 0;
@@ -669,7 +714,7 @@
         }
 
         if (countAdjustments === 0) {
-            eqGrid.innerHTML = '<div style="color:#059669; font-size:1.4rem; font-weight:bold; padding:10px;">La risposta dell\'impianto è già ottimale (deviazioni entro +/- 1.5 dB).</div>';
+            eqGrid.innerHTML = '<div style="color:#059669; font-size:1.2rem; font-weight:bold; padding:10px;">Nessuna banda supera la soglia impostata.</div>';
         }
     }
 
@@ -722,14 +767,14 @@
         const maxDb = dynamicMaxDb;
         const dbRange = maxDb - minDb;
 
-        const paddingLeft = 115; // Spazio laterale riservato per la scala asse Y
+        const paddingLeft = 70;
 
         ctx.strokeStyle = '#252836';
         ctx.lineWidth = 1;
         ctx.fillStyle = '#ffffff'; 
-        ctx.font = 'bold 22px sans-serif'; 
-        ctx.textAlign = 'right'; // Allineamento a destra dei numeri per evitare troncamenti
-        ctx.textBaseline = 'middle'; // Centratura verticale precisa sulla linea
+        ctx.font = 'bold 15px sans-serif'; 
+        ctx.textAlign = 'right'; 
+        ctx.textBaseline = 'middle'; 
 
         const step = maxDb > 140 ? 30 : 20;
         for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
@@ -738,13 +783,15 @@
             ctx.moveTo(paddingLeft, y);
             ctx.lineTo(width, y);
             ctx.stroke();
-            ctx.fillText(`${db} dB`, paddingLeft - 15, y); // Posizionati nello spazio a sinistra del grafico, perfettamente leggibili
+            ctx.fillText(`${db} dB`, paddingLeft - 12, y); 
         }
 
         const availableWidth = width - paddingLeft;
         const barGap = numBands === 31 ? 2 : 1;
         const totalBarWidth = availableWidth / numBands;
         const barWidth = Math.max(1, totalBarWidth - barGap);
+
+        const is31 = (numBands === 31);
 
         let isClipping = false;
 
@@ -776,14 +823,17 @@
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
             ctx.fillRect(x, y, barWidth, barHeight);
 
-            if (barHeight > 40) {
-                ctx.save();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 18px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'alphabetic';
-                ctx.fillText(valDb.toFixed(0), x + totalBarWidth / 2, y + 22);
-                ctx.restore();
+            if (barHeight > (is31 ? 40 : 80)) {
+                const showThisDb = is31 ? true : (i % 12 === 0);
+                if (showThisDb) {
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = is31 ? 'bold 15px monospace' : 'bold 9px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.fillText(valDb.toFixed(0), x + totalBarWidth / 2, y + (is31 ? 20 : 12));
+                    ctx.restore();
+                }
             }
 
             const peakClamped = Math.max(minDb, Math.min(maxDb, peakValues[i]));
@@ -801,15 +851,15 @@
             }
 
             let showLabel = false;
-            if (numBands === 31) {
+            if (is31) {
                 showLabel = true;
             } else {
-                showLabel = (i % 8 === 0 || i === 119);
+                showLabel = (i % 12 === 0 || i === 119);
             }
 
             if (showLabel) {
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 20px sans-serif';
+                ctx.font = is31 ? 'bold 16px sans-serif' : 'bold 11px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'alphabetic';
                 const freq = bandFrequencies[i];
