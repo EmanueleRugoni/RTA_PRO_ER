@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RTA PRO — goldtrackER</title>
-    <!-- Favicon basata su goldtrackER.png -->
+    <!-- Favicon basata su goldtrackER.png[cite: 1] -->
     <link rel="icon" type="image/png" href="goldtrackER.png">
     <style>
         * {
@@ -20,6 +20,7 @@
             flex-direction: column;
             min-height: 100vh;
             padding: 10px;
+            user-select: none;
         }
         .container {
             width: 100%;
@@ -53,31 +54,48 @@
             margin-bottom: 15px;
             align-items: center;
         }
-        .gain-control {
+        /* Rotellina (Knob) Mic Gain */
+        .knob-control {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 3px;
             background: #252836;
             border: 1px solid #3d4255;
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 6px 14px;
+            border-radius: 6px;
         }
-        .gain-control label {
-            font-size: 0.8rem;
+        .knob-label {
+            font-size: 0.7rem;
             font-weight: 600;
             color: #00d2ff;
             text-transform: uppercase;
         }
-        .gain-control input[type="range"] {
-            width: 110px;
-            cursor: pointer;
+        .knob {
+            width: 34px;
+            height: 34px;
+            background: radial-gradient(circle, #2d313e 0%, #161821 100%);
+            border: 2px solid #d4af37;
+            border-radius: 50%;
+            position: relative;
+            cursor: ns-resize;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.5);
         }
-        .gain-val {
-            font-size: 0.85rem;
+        .knob-pointer {
+            width: 3px;
+            height: 11px;
+            background: #d4af37;
+            position: absolute;
+            top: 2px;
+            left: calc(50% - 1.5px);
+            border-radius: 2px;
+            transform-origin: bottom center;
+        }
+        .knob-val {
+            font-size: 0.75rem;
             font-weight: bold;
-            min-width: 45px;
-            text-align: right;
             color: #fff;
+            font-family: monospace;
         }
         button, select {
             background: #252836;
@@ -152,7 +170,7 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            height: 500px;
+            height: 450px;
             background: #0e0f12;
             border-radius: 4px;
             border: 1px solid #252836;
@@ -170,16 +188,64 @@
             background: #14161d;
             border: 1px solid #2d313e;
             border-radius: 6px;
-            padding: 15px;
+            padding: 12px;
             margin-top: 15px;
         }
         .db-value-large {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             font-weight: 900;
             color: #00d2ff;
             letter-spacing: 2px;
             font-family: monospace;
         }
+        /* Stile Pannello Tabella Dinamica dB */
+        .db-table-panel {
+            margin-top: 15px;
+            background: #14161d;
+            border: 1px solid #2d313e;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        .db-table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .db-table-title {
+            font-size: 0.95rem;
+            color: #d4af37;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .db-table-scroll {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #282c38;
+            border-radius: 4px;
+        }
+        .db-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .db-table th, .db-table td {
+            padding: 6px 12px;
+            text-align: center;
+            border-bottom: 1px solid #222632;
+        }
+        .db-table th {
+            background: #1f2330;
+            color: #00d2ff;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .db-table td {
+            color: #d0d5e5;
+        }
+        /* Guida EQ */
         .eq-guide-panel {
             margin-top: 15px;
             background: #14161d;
@@ -207,7 +273,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 8px;
-            max-height: 180px;
+            max-height: 160px;
             overflow-y: auto;
             padding-right: 5px;
         }
@@ -243,10 +309,13 @@
             <option value="120">120 Bande (Alta Risoluzione)</option>
         </select>
 
-        <div class="gain-control">
-            <label for="gainSlider">Mic Gain</label>
-            <input type="range" id="gainSlider" min="0" max="60" step="0.5" value="1.0">
-            <span id="gainVal" class="gain-val">1.0x</span>
+        <!-- Rotellina Mic Gain (-20dB a +60dB) -->
+        <div class="knob-control">
+            <span class="knob-label">Mic Gain</span>
+            <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare">
+                <div id="knobPointer" class="knob-pointer"></div>
+            </div>
+            <span id="knobVal" class="knob-val">0.0 dB</span>
         </div>
 
         <button id="btn-pink">Pink Noise Grab</button>
@@ -257,14 +326,38 @@
         <button id="btn-toggle-guide">Guida EQ</button>
     </div>
 
+    <!-- Grafico a tutto schermo -->
     <div class="canvas-container">
         <canvas id="rtaCanvas"></canvas>
     </div>
 
+    <!-- Display dB SPL Assoluto in basso -->
     <div class="db-display-container">
         <div id="dbReadout" class="db-value-large">- - - dB SPL</div>
     </div>
 
+    <!-- Tabella Griglia Dinamica in dB per Banda -->
+    <div class="db-table-panel">
+        <div class="db-table-header">
+            <span class="db-table-title">Tabella Live dB per Banda</span>
+            <span style="font-size: 0.75rem; color: #888;">Aggiornamento in tempo reale</span>
+        </div>
+        <div class="db-table-scroll">
+            <table class="db-table">
+                <thead>
+                    <tr>
+                        <th>Frequenza (Hz / kHz)</th>
+                        <th>Valore (dB)</th>
+                    </tr>
+                </thead>
+                <tbody id="dbTableBody">
+                    <tr><td colspan="2" style="color: #666;">Attiva il microfono per visualizzare i dati</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pannello Guida Correzione EQ -->
     <div id="eqGuidePanel" class="eq-guide-panel">
         <div class="eq-guide-header">
             <span class="eq-guide-title">Suggerimenti Correzione Equalizzatore Impianto</span>
@@ -288,7 +381,7 @@
     let frozenBandsDb = [];
     let rawCapturedBandsDb = [];
 
-    // Array per gestire il Peak Release per ogni banda
+    // Array Peak Release
     let peakValues = [];
     let peakTimes = [];
 
@@ -302,6 +395,7 @@
 
     let noiseSource = null;
     let activeNoiseType = null;
+    let currentMicDb = 0.0;
 
     const canvas = document.getElementById('rtaCanvas');
     const ctx = canvas.getContext('2d');
@@ -310,19 +404,64 @@
     const eqGuidePanel = document.getElementById('eqGuidePanel');
     const eqGrid = document.getElementById('eqGrid');
     const guideStatus = document.getElementById('guideStatus');
-    const gainSlider = document.getElementById('gainSlider');
-    const gainVal = document.getElementById('gainVal');
     const dbReadout = document.getElementById('dbReadout');
+    const dbTableBody = document.getElementById('dbTableBody');
     const btnPink = document.getElementById('btn-pink');
     const btnWhite = document.getElementById('btn-white');
 
-    gainSlider.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        gainVal.textContent = val.toFixed(1) + 'x';
-        if (gainNode) {
-            gainNode.gain.setValueAtTime(val, audioCtx.currentTime);
-        }
+    const micKnob = document.getElementById('micKnob');
+    const knobPointer = document.getElementById('knobPointer');
+    const knobVal = document.getElementById('knobVal');
+
+    // Interazione Rotellina Knob
+    let isDraggingKnob = false;
+    let startY = 0;
+    let startDb = 0;
+
+    micKnob.addEventListener('mousedown', (e) => {
+        isDraggingKnob = true;
+        startY = e.clientY;
+        startDb = currentMicDb;
+        e.preventDefault();
     });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDraggingKnob) return;
+        const deltaY = startY - e.clientY;
+        currentMicDb = Math.max(-20, Math.min(60, startDb + deltaY * 0.4));
+        updateKnobUI();
+    });
+
+    window.addEventListener('mouseup', () => { isDraggingKnob = false; });
+
+    micKnob.addEventListener('touchstart', (e) => {
+        isDraggingKnob = true;
+        startY = e.touches[0].clientY;
+        startDb = currentMicDb;
+        e.preventDefault();
+    });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!isDraggingKnob) return;
+        const deltaY = startY - e.touches[0].clientY;
+        currentMicDb = Math.max(-20, Math.min(60, startDb + deltaY * 0.4));
+        updateKnobUI();
+    });
+
+    window.addEventListener('touchend', () => { isDraggingKnob = false; });
+
+    function updateKnobUI() {
+        const angle = ((currentMicDb + 20) / 80) * 270 - 135;
+        knobPointer.style.transform = `rotate(${angle}deg)`;
+        knobVal.textContent = (currentMicDb > 0 ? '+' : '') + currentMicDb.toFixed(1) + ' dB';
+
+        const linearGain = Math.pow(10, currentMicDb / 20);
+        if (gainNode && audioCtx) {
+            gainNode.gain.setValueAtTime(linearGain, audioCtx.currentTime);
+        }
+    }
+
+    updateKnobUI();
 
     function setupBands(count) {
         numBands = count;
@@ -347,6 +486,18 @@
         peakTimes = new Array(numBands).fill(0);
         hasGrabbed = false;
         updateEQGuide();
+        buildTableStructure();
+    }
+
+    function buildTableStructure() {
+        dbTableBody.innerHTML = '';
+        for (let i = 0; i < numBands; i++) {
+            const freq = bandFrequencies[i];
+            const freqLabel = freq >= 1000 ? (freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1) + ' kHz' : Math.round(freq) + ' Hz';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${freqLabel}</td><td id="band-val-${i}">- - - dB</td>`;
+            dbTableBody.appendChild(tr);
+        }
     }
 
     setupBands(31);
@@ -374,7 +525,7 @@
             micStream = audioCtx.createMediaStreamSource(stream);
 
             gainNode = audioCtx.createGain();
-            gainNode.gain.value = parseFloat(gainSlider.value);
+            gainNode.gain.value = Math.pow(10, currentMicDb / 20);
 
             analyser = audioCtx.createAnalyser();
             analyser.fftSize = 16384;
@@ -513,6 +664,12 @@
             }
 
             currentBandsDb[i] = bandDb - calibrationOffsets[i];
+            
+            // Aggiornamento dinamico nella tabella HTML
+            const tdCell = document.getElementById(`band-val-${i}`);
+            if (tdCell) {
+                tdCell.textContent = currentBandsDb[i].toFixed(1) + " dB";
+            }
         }
     }
 
@@ -655,14 +812,12 @@
             const valDb = bands[i];
             if (valDb >= maxDb) isClipping = true;
 
-            // Logica Peak Release (Hold 2 secondi, poi decay e fade-out)
             if (valDb > peakValues[i]) {
                 peakValues[i] = valDb;
                 peakTimes[i] = now;
             } else {
                 const elapsed = now - peakTimes[i];
                 if (elapsed > 2000) {
-                    // Dopo 2 secondi il picco inizia a scendere
                     peakValues[i] -= 0.6;
                     if (peakValues[i] < valDb) peakValues[i] = valDb;
                 }
@@ -681,14 +836,12 @@
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
             ctx.fillRect(x, y, barWidth, barHeight);
 
-            // Disegno del segmento Peak Release con Fade Out
             const peakClamped = Math.max(minDb, Math.min(maxDb, peakValues[i]));
             const peakY = height - ((peakClamped - minDb) / dbRange) * height;
             
             const timeSincePeak = now - peakTimes[i];
             let peakAlpha = 1.0;
             if (timeSincePeak > 2000) {
-                // Fade out graduale nell'arco di 1 secondo successivo
                 peakAlpha = Math.max(0, 1 - (timeSincePeak - 2000) / 1000);
             }
 
