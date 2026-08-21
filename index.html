@@ -8,11 +8,11 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RTA PRO — by E.R.</title>
+    <title>RTA PRO — goldtrackER</title>
 
-    <!-- Favicon basata su RTA_PRO_by_ER.png -->
+    <!-- Favicon basata su goldtrackER.png -->
 
-    <link rel="icon" type="image/png" href="RTA_PRO_by_ER.png">
+    <link rel="icon" type="image/png" href="goldtrackER.png">
 
     <style>
 
@@ -570,9 +570,9 @@
 
     <div class="header">
 
-        <h1>RTA PRO — by E.R.</h1>
+        <h1>RTA PRO — goldtrackER[]</h1>
 
-        <div id="status" class="status">Microfono: Disattivato[cite: 1]</div>
+        <div id="status" class="status">Microfono: Disattivato[]</div>
 
     </div>
 
@@ -580,45 +580,45 @@
 
     <div class="controls">
 
-        <button id="btn-start">Start Mic[cite: 1]</button>
+        <button id="btn-start">Start Mic[]</button>
 
         
 
         <select id="select-bands">
 
-            <option value="31">31 Bande (1/3 Ottava)[cite: 1]</option>
+            <option value="31">31 Bande (1/3 Ottava)[]</option>
 
-            <option value="120">120 Bande (Alta Risoluzione)[cite: 1]</option>
+            <option value="120">120 Bande (Alta Risoluzione)[]</option>
 
         </select>
 
 
 
-        <button id="btn-pink">Pink Noise Grab[cite: 1]</button>
+        <button id="btn-pink">Pink Noise Grab[]</button>
 
-        <button id="btn-white">White Noise Grab[cite: 1]</button>
+        <button id="btn-white">White Noise Grab[]</button>
 
-        <button id="btn-zero">Point Zero[cite: 1]</button>
+        <button id="btn-zero">Point Zero[]</button>
 
-        <button id="btn-reset">Reset[cite: 1]</button>
+        <button id="btn-reset">Reset[]</button>
 
-        <button id="btn-freeze">Freeze[cite: 1]</button>
+        <button id="btn-freeze">Freeze[]</button>
 
-        <button id="btn-toggle-guide">Guida EQ[cite: 1]</button>
+        <button id="btn-toggle-guide">Guida EQ[]</button>
 
 
 
         <div class="knob-control">
 
-            <span class="knob-label">Mic Gain[cite: 1]</span>
+            <span class="knob-label">Mic Gain[]</span>
 
-            <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare. Doppio click per azzerare a 0dB[cite: 1]">
+            <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare. Doppio click per azzerare a 0dB[]">
 
                 <div id="knobPointer" class="knob-pointer"></div>
 
             </div>
 
-            <span id="knobVal" class="knob-val">0.0 dB[cite: 1]</span>
+            <span id="knobVal" class="knob-val">0.0 dB[]</span>
 
         </div>
 
@@ -640,7 +640,7 @@
 
     <div class="db-display-container">
 
-        <div id="dbReadout" class="db-value-large">- - - dB SPL[cite: 1]</div>
+        <div id="dbReadout" class="db-value-large">- - - dB SPL[]</div>
 
     </div>
 
@@ -652,19 +652,19 @@
 
         <div class="eq-guide-header">
 
-            <span class="eq-guide-title">Tabella Guida Correzione Equalizzatore Impianto[cite: 1]</span>
+            <span class="eq-guide-title">Tabella Guida Correzione Equalizzatore Impianto[]</span>
 
             <div style="display: flex; align-items: center; gap: 15px;">
 
                 <div class="threshold-wrapper">
 
-                    <label for="eqThresholdInput">Soglia EQ (dB):[cite: 1]</label>
+                    <label for="eqThresholdInput">Soglia EQ (dB):[]</label>
 
                     <input type="number" id="eqThresholdInput" value="2.2" step="0.5" min="0.5" max="10.0">
 
                 </div>
 
-                <span id="guideStatus" style="font-size: 1.1rem; color: #888;">Esegui un "GRAB" o "POINT ZERO"[cite: 1]</span>
+                <span id="guideStatus" style="font-size: 1.1rem; color: #888;">Esegui un "GRAB" o "POINT ZERO"[]</span>
 
             </div>
 
@@ -1012,7 +1012,7 @@
 
             isRunning = true;
 
-            statusEl.textContent = "Microfono: Attivo[cite: 1]";
+            statusEl.textContent = "Microfono: Attivo[]";
 
             statusEl.style.color = "#00c853";
 
@@ -1186,11 +1186,11 @@
 
             const absoluteSpl = dbfs + 94;
 
-            dbReadout.textContent = Math.max(0, absoluteSpl).toFixed(1) + " dB SPL[cite: 1]";
+            dbReadout.textContent = Math.max(0, absoluteSpl).toFixed(1) + " dB SPL[]";
 
         } else {
 
-            dbReadout.textContent = "- - - dB SPL[cite: 1]";
+            dbReadout.textContent = "- - - dB SPL[]";
 
         }
 
@@ -1356,7 +1356,7 @@
 
         if (!hasGrabbed) {
 
-            guideStatus.textContent = 'Esegui un "GRAB" o "POINT ZERO" per generare la guida.[cite: 1]';
+            guideStatus.textContent = 'Esegui un "GRAB" o "POINT ZERO" per generare la guida.[]';
 
             return;
 
@@ -1364,7 +1364,7 @@
 
 
 
-        guideStatus.textContent = 'Correzioni consigliate:[cite: 1]';
+        guideStatus.textContent = 'Correzioni consigliate:[]';
 
         let countAdjustments = 0;
 
@@ -1388,7 +1388,7 @@
 
 
 
-            // Utilizza la soglia inserita manualmente dall'utente[cite: 1]
+            // Utilizza la soglia inserita manualmente dall'utente[]
 
             if (Math.abs(suggestedGain) >= manualThreshold) {
 
@@ -1426,7 +1426,7 @@
 
         if (countAdjustments === 0) {
 
-            eqGrid.innerHTML = '<div style="color:#059669; font-size:1.2rem; font-weight:bold; padding:10px;">Nessuna banda supera la soglia impostata.[cite: 1]</div>';
+            eqGrid.innerHTML = '<div style="color:#059669; font-size:1.2rem; font-weight:bold; padding:10px;">Nessuna banda supera la soglia impostata.[]</div>';
 
         }
 
@@ -1454,13 +1454,13 @@
 
             btnFreeze.classList.add('frozen');
 
-            btnFreeze.textContent = 'Unfreeze[cite: 1]';
+            btnFreeze.textContent = 'Unfreeze[]';
 
         } else {
 
             btnFreeze.classList.remove('frozen');
 
-            btnFreeze.textContent = 'Freeze[cite: 1]';
+            btnFreeze.textContent = 'Freeze[]';
 
         }
 
@@ -1744,7 +1744,7 @@
 
             ctx.textBaseline = 'alphabetic';
 
-            ctx.fillText('CLIP / PEAK[cite: 1]', width - 15, 30);
+            ctx.fillText('CLIP / PEAK[]', width - 15, 30);
 
         }
 
