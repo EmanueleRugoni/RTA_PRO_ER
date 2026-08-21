@@ -1,1760 +1,877 @@
 <!DOCTYPE html>
-
 <html lang="it">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>RTA PRO — goldtrackER</title>
-
+    <title>RTA PRO by E.R.</title>
     <!-- Favicon basata su goldtrackER.png -->
-
     <link rel="icon" type="image/png" href="goldtrackER.png">
-
     <style>
-
         * {
-
             box-sizing: border-box;
-
             margin: 0;
-
             padding: 0;
-
         }
-
         body {
-
             background-color: #121316;
-
             color: #e0e0e0;
-
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-
             display: flex;
-
             flex-direction: column;
-
             min-height: 100vh;
-
             padding: 10px;
-
             user-select: none;
-
         }
-
         .container {
-
             width: 100%;
-
             background: #1a1c23;
-
             border-radius: 8px;
-
             padding: 15px;
-
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-
             border: 1px solid #2d313e;
-
             display: flex;
-
             flex-direction: column;
-
             flex-grow: 1;
-
         }
-
         .header {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             margin-bottom: 15px;
-
             border-bottom: 1px solid #2d313e;
-
             padding-bottom: 10px;
-
         }
-
         h1 {
-
             font-size: 1.2rem;
-
             letter-spacing: 1px;
-
             color: #d4af37;
-
             text-transform: uppercase;
-
         }
-
         .controls {
-
             display: flex;
-
             gap: 10px;
-
             flex-wrap: wrap;
-
             margin-bottom: 15px;
-
             align-items: center;
-
         }
-
         /* Rotellina (Knob) Mic Gain a destra */
-
         .knob-control {
-
             display: flex;
-
             flex-direction: column;
-
             align-items: center;
-
             gap: 3px;
-
             background: #252836;
-
             border: 1px solid #3d4255;
-
             padding: 6px 14px;
-
             border-radius: 6px;
-
             margin-left: auto;
-
         }
-
         .knob-label {
-
             font-size: 0.7rem;
-
             font-weight: 600;
-
             color: #00d2ff;
-
             text-transform: uppercase;
-
         }
-
         .knob {
-
             width: 34px;
-
             height: 34px;
-
             background: radial-gradient(circle, #2d313e 0%, #161821 100%);
-
             border: 2px solid #d4af37;
-
             border-radius: 50%;
-
             position: relative;
-
             cursor: ns-resize;
-
             box-shadow: 0 3px 6px rgba(0,0,0,0.5);
-
         }
-
         .knob-pointer {
-
             width: 3px;
-
             height: 11px;
-
             background: #d4af37;
-
             position: absolute;
-
             top: 2px;
-
             left: calc(50% - 1.5px);
-
             border-radius: 2px;
-
             transform-origin: bottom center;
-
         }
-
         .knob-val {
-
             font-size: 0.75rem;
-
             font-weight: bold;
-
             color: #fff;
-
             font-family: monospace;
-
         }
-
         button, select {
-
             background: #252836;
-
             color: #fff;
-
             border: 1px solid #3d4255;
-
             padding: 10px 14px;
-
             font-size: 0.85rem;
-
             font-weight: 600;
-
             border-radius: 4px;
-
             cursor: pointer;
-
             transition: all 0.2s ease;
-
             text-transform: uppercase;
-
             letter-spacing: 0.5px;
-
         }
-
         select {
-
             outline: none;
-
             color: #00d2ff;
-
         }
-
         button:hover, select:hover {
-
             background: #32374a;
-
             border-color: #00d2ff;
-
         }
-
         button#btn-start {
-
             background: #00c853;
-
             border-color: #00c853;
-
             color: #121316;
-
         }
-
         button#btn-start:hover {
-
             background: #00e676;
-
         }
-
         button#btn-pink.active-noise {
-
             background: #e91e63;
-
             border-color: #fff;
-
             box-shadow: 0 0 10px #e91e63;
-
         }
-
         button#btn-pink {
-
             background: #ad1457;
-
             border-color: #ad1457;
-
             color: #fff;
-
         }
-
         button#btn-white.active-noise {
-
             background: #00bcd4;
-
             border-color: #fff;
-
             box-shadow: 0 0 10px #00bcd4;
-
         }
-
         button#btn-white {
-
             background: #37474f;
-
             border-color: #37474f;
-
             color: #fff;
-
         }
-
         button#btn-zero {
-
             background: #d4af37;
-
             border-color: #d4af37;
-
             color: #121316;
-
         }
-
         button#btn-zero:hover {
-
             background: #e6c555;
-
         }
-
         button#btn-reset {
-
             background: #ff5252;
-
             border-color: #ff5252;
-
             color: #fff;
-
         }
-
         button#btn-reset:hover {
-
             background: #ff7676;
-
         }
-
         button#btn-freeze.frozen {
-
             background: #ff9100;
-
             border-color: #ff9100;
-
             color: #121316;
-
         }
-
         .canvas-container {
-
             position: relative;
-
             width: 100%;
-
             height: 480px;
-
             background: #0e0f12;
-
             border-radius: 4px;
-
             border: 1px solid #252836;
-
             overflow: hidden;
-
         }
-
         canvas {
-
             display: block;
-
             width: 100%;
-
             height: 100%;
-
         }
-
         .db-display-container {
-
             display: flex;
-
             justify-content: center;
-
             align-items: center;
-
             background: #14161d;
-
             border: 1px solid #2d313e;
-
             border-radius: 6px;
-
             padding: 12px;
-
             margin-top: 15px;
-
         }
-
         .db-value-large {
-
             font-size: 2.5rem;
-
             font-weight: 900;
-
             color: #00d2ff;
-
             letter-spacing: 2px;
-
             font-family: monospace;
-
         }
-
         .eq-guide-panel {
-
             margin-top: 15px;
-
             background: #14161d;
-
             border: 1px solid #2d313e;
-
             border-radius: 6px;
-
             padding: 15px;
-
             display: none;
-
         }
-
         .eq-guide-panel.visible {
-
             display: block;
-
         }
-
         .eq-guide-header {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             margin-bottom: 12px;
-
             flex-wrap: wrap;
-
             gap: 10px;
-
         }
-
         .eq-guide-title {
-
             font-size: 1.5rem;
-
             color: #d4af37;
-
             text-transform: uppercase;
-
             font-weight: bold;
-
         }
-
         .threshold-wrapper {
-
             display: flex;
-
             align-items: center;
-
             gap: 8px;
-
             background: #252836;
-
             padding: 4px 10px;
-
             border-radius: 4px;
-
             border: 1px solid #3d4255;
-
         }
-
         .threshold-wrapper label {
-
             font-size: 0.85rem;
-
             color: #00d2ff;
-
             font-weight: bold;
-
             text-transform: uppercase;
-
         }
-
         .threshold-wrapper input {
-
             width: 65px;
-
             background: #14161d;
-
             color: #fff;
-
             border: 1px solid #3d4255;
-
             padding: 4px;
-
             font-size: 0.95rem;
-
             font-weight: bold;
-
             text-align: center;
-
             border-radius: 3px;
-
             outline: none;
-
         }
-
         .eq-grid {
-
             display: grid;
-
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-
             gap: 10px;
-
-            /* Altezza rimossa e adattata automaticamente al contenuto senza slider */
-
         }
-
         .eq-card {
-
             background: #ffffff;
-
             border: 1px solid #d1d5db;
-
             border-radius: 6px;
-
             padding: 8px 10px;
-
             text-align: center;
-
         }
-
         .eq-card.cut { border-color: #ef4444; border-width: 3px; }
-
         .eq-card.boost { border-color: #22c55e; border-width: 3px; }
-
         .eq-freq { 
-
             font-size: 1.3rem; 
-
             color: #000000; 
-
             font-weight: bold;
-
             margin-bottom: 4px; 
-
         }
-
         .eq-gain { 
-
             font-size: 1.7rem; 
-
             font-weight: 900;
-
             color: #000000; 
-
         }
-
         .status { font-size: 0.8rem; color: #888; }
-
     </style>
-
 </head>
-
 <body>
 
-
-
 <div class="container">
-
     <div class="header">
-
-        <h1>RTA PRO — goldtrackER[]</h1>
-
-        <div id="status" class="status">Microfono: Disattivato[]</div>
-
+        <h1>RTA PRO by E.R.</h1>
+        <div id="status" class="status">Microfono: Disattivato</div>
     </div>
-
-
 
     <div class="controls">
-
-        <button id="btn-start">Start Mic[]</button>
-
+        <button id="btn-start">Start Mic</button>
         
-
         <select id="select-bands">
-
-            <option value="31">31 Bande (1/3 Ottava)[]</option>
-
-            <option value="120">120 Bande (Alta Risoluzione)[]</option>
-
+            <option value="31">31 Bande (1/3 Ottava)</option>
+            <option value="120">120 Bande (Alta Risoluzione)</option>
         </select>
 
-
-
-        <button id="btn-pink">Pink Noise Grab[]</button>
-
-        <button id="btn-white">White Noise Grab[]</button>
-
-        <button id="btn-zero">Point Zero[]</button>
-
-        <button id="btn-reset">Reset[]</button>
-
-        <button id="btn-freeze">Freeze[]</button>
-
-        <button id="btn-toggle-guide">Guida EQ[]</button>
-
-
+        <button id="btn-pink">Pink Noise Grab</button>
+        <button id="btn-white">White Noise Grab</button>
+        <button id="btn-zero">Point Zero</button>
+        <button id="btn-reset">Reset</button>
+        <button id="btn-freeze">Freeze</button>
+        <button id="btn-toggle-guide">Guida EQ</button>
 
         <div class="knob-control">
-
-            <span class="knob-label">Mic Gain[]</span>
-
-            <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare. Doppio click per azzerare a 0dB[]">
-
+            <span class="knob-label">Mic Gain</span>
+            <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare. Doppio click per azzerare a 0dB">
                 <div id="knobPointer" class="knob-pointer"></div>
-
             </div>
-
-            <span id="knobVal" class="knob-val">0.0 dB[]</span>
-
+            <span id="knobVal" class="knob-val">0.0 dB</span>
         </div>
-
     </div>
-
-
 
     <!-- Grafico a tutto schermo -->
-
     <div class="canvas-container">
-
         <canvas id="rtaCanvas"></canvas>
-
     </div>
-
-
 
     <!-- Display dB SPL Assoluto in basso -->
-
     <div class="db-display-container">
-
-        <div id="dbReadout" class="db-value-large">- - - dB SPL[]</div>
-
+        <div id="dbReadout" class="db-value-large">- - - dB SPL</div>
     </div>
-
-
 
     <!-- Tabella Guida Correzione EQ con Soglia Manuale -->
-
     <div id="eqGuidePanel" class="eq-guide-panel">
-
         <div class="eq-guide-header">
-
-            <span class="eq-guide-title">Tabella Guida Correzione Equalizzatore Impianto[]</span>
-
+            <span class="eq-guide-title">Tabella Guida Correzione Equalizzatore Impianto</span>
             <div style="display: flex; align-items: center; gap: 15px;">
-
                 <div class="threshold-wrapper">
-
-                    <label for="eqThresholdInput">Soglia EQ (dB):[]</label>
-
+                    <label for="eqThresholdInput">Soglia EQ (dB):</label>
                     <input type="number" id="eqThresholdInput" value="2.2" step="0.5" min="0.5" max="10.0">
-
                 </div>
-
-                <span id="guideStatus" style="font-size: 1.1rem; color: #888;">Esegui un "GRAB" o "POINT ZERO"[]</span>
-
+                <span id="guideStatus" style="font-size: 1.1rem; color: #888;">Esegui un "GRAB" o "POINT ZERO"</span>
             </div>
-
         </div>
-
         <div id="eqGrid" class="eq-grid"></div>
-
     </div>
-
 </div>
 
-
-
 <script>
-
     const ISO_31_FREQUENCIES = [
-
         20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500,
-
         630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000,
-
         10000, 12500, 16000, 20000
-
     ];
 
-
-
     let numBands = 31;
-
     let bandFrequencies = [];
-
     let calibrationOffsets = [];
-
     let currentBandsDb = [];
-
     let frozenBandsDb = [];
-
     let rawCapturedBandsDb = [];
 
-
-
     let peakValues = [];
-
     let peakTimes = [];
 
-
-
     let audioCtx = null;
-
     let analyser = null;
-
     let gainNode = null;
-
     let micStream = null;
-
     let isRunning = false;
-
     let isFrozen = false;
-
     let hasGrabbed = false;
 
-
-
     let noiseSource = null;
-
     let activeNoiseType = null;
-
     let currentMicDb = 0.0;
-
     let dynamicMaxDb = 120;
 
-
-
     const canvas = document.getElementById('rtaCanvas');
-
     const ctx = canvas.getContext('2d');
-
     const statusEl = document.getElementById('status');
-
     const selectBands = document.getElementById('select-bands');
-
     const eqGuidePanel = document.getElementById('eqGuidePanel');
-
     const eqGrid = document.getElementById('eqGrid');
-
     const guideStatus = document.getElementById('guideStatus');
-
     const dbReadout = document.getElementById('dbReadout');
-
     const btnPink = document.getElementById('btn-pink');
-
     const btnWhite = document.getElementById('btn-white');
-
     const eqThresholdInput = document.getElementById('eqThresholdInput');
 
-
-
     const micKnob = document.getElementById('micKnob');
-
     const knobPointer = document.getElementById('knobPointer');
-
     const knobVal = document.getElementById('knobVal');
 
-
-
     let isDraggingKnob = false;
-
     let startY = 0;
-
     let startDb = 0;
 
-
-
     micKnob.addEventListener('mousedown', (e) => {
-
         isDraggingKnob = true;
-
         startY = e.clientY;
-
         startDb = currentMicDb;
-
         e.preventDefault();
-
     });
-
-
 
     micKnob.addEventListener('dblclick', () => {
-
         currentMicDb = 0.0;
-
         updateKnobUI();
-
     });
-
-
 
     window.addEventListener('mousemove', (e) => {
-
         if (!isDraggingKnob) return;
-
         const deltaY = startY - e.clientY;
-
         currentMicDb = Math.max(-20, Math.min(60, startDb + deltaY * 0.4));
-
         updateKnobUI();
-
     });
-
-
 
     window.addEventListener('mouseup', () => { isDraggingKnob = false; });
 
-
-
     micKnob.addEventListener('touchstart', (e) => {
-
         isDraggingKnob = true;
-
         startY = e.touches[0].clientY;
-
         startDb = currentMicDb;
-
         e.preventDefault();
-
     });
-
-
 
     window.addEventListener('touchmove', (e) => {
-
         if (!isDraggingKnob) return;
-
         const deltaY = startY - e.touches[0].clientY;
-
         currentMicDb = Math.max(-20, Math.min(60, startDb + deltaY * 0.4));
-
         updateKnobUI();
-
     });
-
-
 
     window.addEventListener('touchend', () => { isDraggingKnob = false; });
 
-
-
-    // Ricalcola la guida EQ in tempo reale se modifichi la soglia manuale
-
     eqThresholdInput.addEventListener('input', () => {
-
         if (hasGrabbed) {
-
             updateEQGuide();
-
         }
-
     });
 
-
-
     function updateKnobUI() {
-
         const angle = ((currentMicDb + 20) / 80) * 270 - 135;
-
         knobPointer.style.transform = `rotate(${angle}deg)`;
-
         knobVal.textContent = (currentMicDb > 0 ? '+' : '') + currentMicDb.toFixed(1) + ' dB';
 
-
-
         const linearGain = Math.pow(10, currentMicDb / 20);
-
         if (gainNode && audioCtx) {
-
             gainNode.gain.setValueAtTime(linearGain, audioCtx.currentTime);
-
         }
-
     }
-
-
 
     updateKnobUI();
 
-
-
     function setupBands(count) {
-
         numBands = count;
-
         bandFrequencies = [];
 
-
-
         if (numBands === 31) {
-
             bandFrequencies = [...ISO_31_FREQUENCIES];
-
         } else {
-
             const minLog = Math.log10(20);
-
             const maxLog = Math.log10(20000);
-
             for (let i = 0; i < 120; i++) {
-
                 const logFreq = minLog + (i / 119) * (maxLog - minLog);
-
                 bandFrequencies.push(Math.pow(10, logFreq));
-
             }
-
         }
 
-
-
         calibrationOffsets = new Array(numBands).fill(0);
-
         currentBandsDb = new Array(numBands).fill(0);
-
         frozenBandsDb = new Array(numBands).fill(0);
-
         rawCapturedBandsDb = new Array(numBands).fill(0);
-
         peakValues = new Array(numBands).fill(0);
-
         peakTimes = new Array(numBands).fill(0);
-
         hasGrabbed = false;
-
         updateEQGuide();
-
     }
-
-
 
     setupBands(31);
 
-
-
     selectBands.addEventListener('change', (e) => {
-
         setupBands(parseInt(e.target.value));
-
     });
-
-
 
     function resizeCanvas() {
-
         const rect = canvas.getBoundingClientRect();
-
         const dpr = window.devicePixelRatio || 1;
-
         canvas.width = rect.width * dpr;
-
         canvas.height = rect.height * dpr;
-
         ctx.scale(dpr, dpr);
-
     }
-
     window.addEventListener('resize', resizeCanvas);
-
     resizeCanvas();
 
-
-
     document.getElementById('btn-start').addEventListener('click', async () => {
-
         if (isRunning) return;
 
-
-
         try {
-
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-
             micStream = audioCtx.createMediaStreamSource(stream);
 
-
-
             gainNode = audioCtx.createGain();
-
             gainNode.gain.value = Math.pow(10, currentMicDb / 20);
 
-
-
             analyser = audioCtx.createAnalyser();
-
             analyser.fftSize = 16384;
-
             analyser.smoothingTimeConstant = 0.70;
 
-
-
             micStream.connect(gainNode);
-
             gainNode.connect(analyser);
 
-
-
             isRunning = true;
-
-            statusEl.textContent = "Microfono: Attivo[]";
-
+            statusEl.textContent = "Microfono: Attivo";
             statusEl.style.color = "#00c853";
-
             document.getElementById('btn-start').style.display = "none";
 
-
-
             requestAnimationFrame(draw);
-
         } catch (err) {
-
             alert("Errore nell'accesso al microfono: " + err.message);
-
         }
-
     });
 
-
-
     function toggleInternalNoise(type) {
-
         if (!audioCtx) {
-
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
         }
-
         if (audioCtx.state === 'suspended') {
-
             audioCtx.resume();
-
         }
-
-
 
         if (activeNoiseType === type) {
-
             stopInternalNoise();
-
             return;
-
         }
-
-
 
         stopInternalNoise();
-
         activeNoiseType = type;
 
-
-
         const bufferSize = audioCtx.sampleRate * 5;
-
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-
         const output = buffer.getChannelData(0);
 
-
-
         if (type === 'pink') {
-
             let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-
             for (let i = 0; i < bufferSize; i++) {
-
                 const white = Math.random() * 2 - 1;
-
                 b0 = 0.99886 * b0 + white * 0.0555179;
-
                 b1 = 0.99332 * b1 + white * 0.0750759;
-
                 b2 = 0.96900 * b2 + white * 0.1538520;
-
                 b3 = 0.86650 * b3 + white * 0.3104856;
-
                 b4 = 0.55000 * b4 + white * 0.5329522;
-
                 b5 = -0.7616 * b5 - white * 0.0168980;
-
                 output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
-
                 b6 = white * 0.115926;
-
             }
-
             btnPink.classList.add('active-noise');
-
         } else if (type === 'white') {
-
             for (let i = 0; i < bufferSize; i++) {
-
                 output[i] = (Math.random() * 2 - 1) * 0.08;
-
             }
-
             btnWhite.classList.add('active-noise');
-
         }
-
-
 
         noiseSource = audioCtx.createBufferSource();
-
         noiseSource.buffer = buffer;
-
         noiseSource.loop = true;
-
         noiseSource.connect(audioCtx.destination);
-
         noiseSource.start();
 
-
-
         grabCalibration();
-
     }
-
-
 
     function stopInternalNoise() {
-
         if (noiseSource) {
-
             try { noiseSource.stop(); } catch(e) {}
-
             noiseSource.disconnect();
-
             noiseSource = null;
-
         }
-
         activeNoiseType = null;
-
         btnPink.classList.remove('active-noise');
-
         btnWhite.classList.remove('active-noise');
-
     }
-
-
 
     btnPink.addEventListener('click', () => toggleInternalNoise('pink'));
-
     btnWhite.addEventListener('click', () => toggleInternalNoise('white'));
 
-
-
     function calculateBands() {
-
         if (!analyser) return;
 
-
-
         const timeData = new Float32Array(analyser.fftSize);
-
         analyser.getFloatTimeDomainData(timeData);
-
         let sumSquares = 0;
-
         for (let i = 0; i < timeData.length; i++) {
-
             sumSquares += timeData[i] * timeData[i];
-
         }
-
         const rms = Math.sqrt(sumSquares / timeData.length);
-
         if (rms > 0) {
-
             const dbfs = 20 * Math.log10(rms);
-
             const absoluteSpl = dbfs + 94;
-
-            dbReadout.textContent = Math.max(0, absoluteSpl).toFixed(1) + " dB SPL[]";
-
+            dbReadout.textContent = Math.max(0, absoluteSpl).toFixed(1) + " dB SPL";
         } else {
-
-            dbReadout.textContent = "- - - dB SPL[]";
-
+            dbReadout.textContent = "- - - dB SPL";
         }
-
-
 
         const bufferLength = analyser.frequencyBinCount;
-
         const fftData = new Float32Array(bufferLength);
-
         analyser.getFloatFrequencyData(fftData);
 
-
-
         const sampleRate = audioCtx.sampleRate;
-
         const nyquist = sampleRate / 2;
-
         const binSize = nyquist / bufferLength;
 
-
-
         for (let i = 0; i < numBands; i++) {
-
             const centerFreq = bandFrequencies[i];
-
             const factor = numBands === 31 ? Math.pow(2, 1 / 6) : Math.pow(2, 1 / 24);
-
             const lowerFreq = centerFreq / factor;
-
             const upperFreq = centerFreq * factor;
 
-
-
             let lowBin = Math.floor(lowerFreq / binSize);
-
             let highBin = Math.ceil(upperFreq / binSize);
 
-
-
             lowBin = Math.max(0, lowBin);
-
             highBin = Math.min(bufferLength - 1, highBin);
 
-
-
             let sumEnergy = 0;
-
             let count = 0;
 
-
-
             for (let b = lowBin; b <= highBin; b++) {
-
                 const db = fftData[b];
-
                 if (db > -120) {
-
                     sumEnergy += Math.pow(10, db / 10);
-
                     count++;
-
                 }
-
             }
-
-
 
             let bandDb = -100;
-
             if (count > 0 && sumEnergy > 0) {
-
                 bandDb = 10 * Math.log10(sumEnergy / count);
-
             }
-
-
 
             let splValue = bandDb + 94;
-
             currentBandsDb[i] = Math.max(0, splValue - calibrationOffsets[i]);
-
         }
-
     }
-
-
 
     function grabCalibration() {
-
         if (!isRunning) return;
 
-
-
         let totalDb = 0;
-
         let validBands = 0;
-
         for (let i = 0; i < numBands; i++) {
-
             if (currentBandsDb[i] > 10) {
-
                 totalDb += currentBandsDb[i];
-
                 validBands++;
-
             }
-
         }
-
         const avgDb = validBands > 0 ? totalDb / validBands : 0;
 
-
-
         for (let i = 0; i < numBands; i++) {
-
             rawCapturedBandsDb[i] = currentBandsDb[i] - avgDb;
-
             calibrationOffsets[i] += (currentBandsDb[i] - avgDb);
-
         }
 
-
-
         hasGrabbed = true;
-
         eqGuidePanel.classList.add('visible');
-
         updateEQGuide();
-
     }
-
-
 
     document.getElementById('btn-zero').addEventListener('click', grabCalibration);
 
-
-
     document.getElementById('btn-reset').addEventListener('click', () => {
-
         stopInternalNoise();
-
         calibrationOffsets.fill(0);
-
         rawCapturedBandsDb.fill(0);
-
         peakValues.fill(0);
-
         peakTimes.fill(0);
-
         hasGrabbed = false;
-
         updateEQGuide();
-
     });
-
-
 
     function updateEQGuide() {
-
         eqGrid.innerHTML = '';
 
-
-
         if (!hasGrabbed) {
-
-            guideStatus.textContent = 'Esegui un "GRAB" o "POINT ZERO" per generare la guida.[]';
-
+            guideStatus.textContent = 'Esegui un "GRAB" o "POINT ZERO" per generare la guida.';
             return;
-
         }
 
-
-
-        guideStatus.textContent = 'Correzioni consigliate:[]';
-
+        guideStatus.textContent = 'Correzioni consigliate:';
         let countAdjustments = 0;
-
         const manualThreshold = parseFloat(eqThresholdInput.value) || 2.2;
 
-
-
         for (let i = 0; i < numBands; i++) {
-
             const freq = bandFrequencies[i];
-
             const deviation = rawCapturedBandsDb[i];
 
-
-
             let suggestedGain = -deviation;
-
             if (suggestedGain > 6) suggestedGain = 6;
-
             if (suggestedGain < -12) suggestedGain = -12;
 
-
-
-            // Utilizza la soglia inserita manualmente dall'utente[]
-
             if (Math.abs(suggestedGain) >= manualThreshold) {
-
                 countAdjustments++;
-
                 const card = document.createElement('div');
-
                 const isCut = suggestedGain < 0;
-
                 card.className = `eq-card ${isCut ? 'cut' : 'boost'}`;
 
-
-
                 let freqLabel = freq >= 1000 ? (freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1) + ' kHz' : Math.round(freq) + ' Hz';
-
                 let gainLabel = (suggestedGain > 0 ? '+' : '') + suggestedGain.toFixed(1) + ' dB';
 
-
-
                 card.innerHTML = `
-
                     <div class="eq-freq">${freqLabel}</div>
-
                     <div class="eq-gain">${gainLabel}</div>
-
                 `;
-
                 eqGrid.appendChild(card);
-
             }
-
         }
-
-
 
         if (countAdjustments === 0) {
-
-            eqGrid.innerHTML = '<div style="color:#059669; font-size:1.2rem; font-weight:bold; padding:10px;">Nessuna banda supera la soglia impostata.[]</div>';
-
+            eqGrid.innerHTML = '<div style="color:#059669; font-size:1.2rem; font-weight:bold; padding:10px;">Nessuna banda supera la soglia impostata.</div>';
         }
-
     }
 
-
-
     document.getElementById('btn-toggle-guide').addEventListener('click', () => {
-
         eqGuidePanel.classList.toggle('visible');
-
     });
-
-
 
     const btnFreeze = document.getElementById('btn-freeze');
-
     btnFreeze.addEventListener('click', () => {
-
         isFrozen = !isFrozen;
-
         if (isFrozen) {
-
             frozenBandsDb = [...currentBandsDb];
-
             btnFreeze.classList.add('frozen');
-
-            btnFreeze.textContent = 'Unfreeze[]';
-
+            btnFreeze.textContent = 'Unfreeze';
         } else {
-
             btnFreeze.classList.remove('frozen');
-
-            btnFreeze.textContent = 'Freeze[]';
-
+            btnFreeze.textContent = 'Freeze';
         }
-
     });
 
-
-
     function draw() {
-
         requestAnimationFrame(draw);
 
-
-
         const rect = canvas.getBoundingClientRect();
-
         const width = rect.width;
-
         const height = rect.height;
-
-
 
         ctx.clearRect(0, 0, width, height);
 
-
-
         if (!isFrozen) {
-
             calculateBands();
-
         }
-
-
 
         const bands = isFrozen ? frozenBandsDb : currentBandsDb;
-
         const now = performance.now();
 
-
-
         let maxValInBands = 0;
-
         for (let i = 0; i < numBands; i++) {
-
             if (bands[i] > maxValInBands) maxValInBands = bands[i];
-
         }
-
-
 
         if (maxValInBands > dynamicMaxDb) {
-
             dynamicMaxDb = Math.ceil(maxValInBands / 10) * 10 + 10;
-
         } else if (dynamicMaxDb > 120) {
-
             dynamicMaxDb -= 0.4;
-
             if (dynamicMaxDb < 120) dynamicMaxDb = 120;
-
         }
 
-
-
         const minDb = 0;
-
         const maxDb = dynamicMaxDb;
-
         const dbRange = maxDb - minDb;
-
-
 
         const paddingLeft = 70;
 
-
-
         ctx.strokeStyle = '#252836';
-
         ctx.lineWidth = 1;
-
         ctx.fillStyle = '#ffffff'; 
-
         ctx.font = 'bold 15px sans-serif'; 
-
         ctx.textAlign = 'right'; 
-
         ctx.textBaseline = 'middle'; 
 
-
-
         const step = maxDb > 140 ? 30 : 20;
-
         for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
-
             const y = height - ((db - minDb) / dbRange) * height;
-
             ctx.beginPath();
-
             ctx.moveTo(paddingLeft, y);
-
             ctx.lineTo(width, y);
-
             ctx.stroke();
-
             ctx.fillText(`${db} dB`, paddingLeft - 12, y); 
-
         }
 
-
-
         const availableWidth = width - paddingLeft;
-
         const barGap = numBands === 31 ? 2 : 1;
-
         const totalBarWidth = availableWidth / numBands;
-
         const barWidth = Math.max(1, totalBarWidth - barGap);
-
-
 
         const is31 = (numBands === 31);
 
-
-
         let isClipping = false;
 
-
-
         for (let i = 0; i < numBands; i++) {
-
             const valDb = bands[i];
-
             if (valDb >= maxDb) isClipping = true;
 
-
-
             if (valDb > peakValues[i]) {
-
                 peakValues[i] = valDb;
-
                 peakTimes[i] = now;
-
             } else {
-
                 const elapsed = now - peakTimes[i];
-
                 if (elapsed > 2000) {
-
                     peakValues[i] -= 1.0;
-
                     if (peakValues[i] < valDb) peakValues[i] = valDb;
-
                 }
-
             }
-
-
 
             const clampedVal = Math.max(minDb, Math.min(maxDb, valDb));
-
             const barHeight = ((clampedVal - minDb) / dbRange) * height;
-
             const x = paddingLeft + i * totalBarWidth;
-
             const y = height - barHeight;
 
-
-
             const gradient = ctx.createLinearGradient(0, height, 0, 0);
-
             gradient.addColorStop(0, '#00d2ff');
-
             gradient.addColorStop(0.7, '#00c853');
-
             gradient.addColorStop(1, '#ff1744');
 
-
-
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
-
             ctx.fillRect(x, y, barWidth, barHeight);
 
-
-
             if (barHeight > (is31 ? 40 : 80)) {
-
                 const showThisDb = is31 ? true : (i % 12 === 0);
-
                 if (showThisDb) {
-
                     ctx.save();
-
                     ctx.fillStyle = '#ffffff';
-
                     ctx.font = is31 ? 'bold 15px monospace' : 'bold 9px monospace';
-
                     ctx.textAlign = 'center';
-
                     ctx.textBaseline = 'alphabetic';
-
                     ctx.fillText(valDb.toFixed(0), x + totalBarWidth / 2, y + (is31 ? 20 : 12));
-
                     ctx.restore();
-
                 }
-
             }
-
-
 
             const peakClamped = Math.max(minDb, Math.min(maxDb, peakValues[i]));
-
             const peakY = height - ((peakClamped - minDb) / dbRange) * height;
-
             
-
             const timeSincePeak = now - peakTimes[i];
-
             let peakAlpha = 1.0;
-
             if (timeSincePeak > 2000) {
-
                 peakAlpha = Math.max(0, 1 - (timeSincePeak - 2000) / 1000);
-
             }
-
-
 
             if (peakAlpha > 0) {
-
                 ctx.fillStyle = isFrozen ? `rgba(255, 145, 0, ${peakAlpha})` : `rgba(255, 255, 255, ${peakAlpha})`;
-
                 ctx.fillRect(x, peakY - 3, barWidth, 3);
-
             }
-
-
 
             let showLabel = false;
-
             if (is31) {
-
                 showLabel = true;
-
             } else {
-
                 showLabel = (i % 12 === 0 || i === 119);
-
             }
-
-
 
             if (showLabel) {
-
                 ctx.fillStyle = '#ffffff';
-
                 ctx.font = is31 ? 'bold 16px sans-serif' : 'bold 11px sans-serif';
-
                 ctx.textAlign = 'center';
-
                 ctx.textBaseline = 'alphabetic';
-
                 const freq = bandFrequencies[i];
-
                 let label = freq >= 1000 ? (freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1) + 'k' : Math.round(freq);
-
                 ctx.fillText(label, x + totalBarWidth / 2, height - 10);
-
             }
-
         }
-
-
 
         if (isClipping) {
-
             ctx.fillStyle = '#ff1744';
-
             ctx.font = 'bold 16px sans-serif';
-
             ctx.textAlign = 'right';
-
             ctx.textBaseline = 'alphabetic';
-
-            ctx.fillText('CLIP / PEAK[]', width - 15, 30);
-
+            ctx.fillText('CLIP / PEAK', width - 15, 30);
         }
-
     }
-
 </script>
 
-
-
 </body>
-
-</html> 
-
+</html>
