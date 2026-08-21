@@ -765,6 +765,9 @@
         const dbRange = maxDb - minDb;
 
         const paddingLeft = 70;
+        const paddingTop = 40;    // Aumentato lo spazio in alto per evitare il taglio del 120 dB
+        const paddingBottom = 40; // Aumentato lo spazio in basso per evitare il taglio dello 0 dB
+        const drawingHeight = height - paddingTop - paddingBottom;
 
         ctx.strokeStyle = '#252836';
         ctx.lineWidth = 1;
@@ -775,7 +778,7 @@
 
         const step = maxDb > 140 ? 30 : 20;
         for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
-            const y = height - ((db - minDb) / dbRange) * height;
+            const y = paddingTop + drawingHeight - ((db - minDb) / dbRange) * drawingHeight;
             ctx.beginPath();
             ctx.moveTo(paddingLeft, y);
             ctx.lineTo(width, y);
@@ -808,9 +811,9 @@
             }
 
             const clampedVal = Math.max(minDb, Math.min(maxDb, valDb));
-            const barHeight = ((clampedVal - minDb) / dbRange) * height;
+            const barHeight = ((clampedVal - minDb) / dbRange) * drawingHeight;
             const x = paddingLeft + i * totalBarWidth;
-            const y = height - barHeight;
+            const y = paddingTop + drawingHeight - barHeight;
 
             const gradient = ctx.createLinearGradient(0, height, 0, 0);
             gradient.addColorStop(0, '#00d2ff');
@@ -834,7 +837,7 @@
             }
 
             const peakClamped = Math.max(minDb, Math.min(maxDb, peakValues[i]));
-            const peakY = height - ((peakClamped - minDb) / dbRange) * height;
+            const peakY = paddingTop + drawingHeight - ((peakClamped - minDb) / dbRange) * drawingHeight;
             
             const timeSincePeak = now - peakTimes[i];
             let peakAlpha = 1.0;
@@ -870,7 +873,7 @@
             ctx.font = 'bold 16px sans-serif';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillText('CLIP / PEAK', width - 15, 30);
+            ctx.fillText('CLIP / PEAK', width - 15, 25);
         }
     }
 </script>
