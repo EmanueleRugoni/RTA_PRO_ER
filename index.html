@@ -243,10 +243,9 @@
             <option value="120">120 Bande (Alta Risoluzione)</option>
         </select>
 
-        <!-- Slider Mic Gain esteso fino a 15.0x -->
         <div class="gain-control">
             <label for="gainSlider">Mic Gain</label>
-            <input type="range" id="gainSlider" min="0" max="15" step="0.05" value="1.0">
+            <input type="range" id="gainSlider" min="0" max="60" step="0.5" value="1.0">
             <span id="gainVal" class="gain-val">1.0x</span>
         </div>
 
@@ -258,17 +257,14 @@
         <button id="btn-toggle-guide">Guida EQ</button>
     </div>
 
-    <!-- Grafico a tutto schermo -->
     <div class="canvas-container">
         <canvas id="rtaCanvas"></canvas>
     </div>
 
-    <!-- Display dB SPL Assoluto in basso -->
     <div class="db-display-container">
         <div id="dbReadout" class="db-value-large">- - - dB SPL</div>
     </div>
 
-    <!-- Pannello Guida Correzione EQ -->
     <div id="eqGuidePanel" class="eq-guide-panel">
         <div class="eq-guide-header">
             <span class="eq-guide-title">Suggerimenti Correzione Equalizzatore Impianto</span>
@@ -292,6 +288,10 @@
     let frozenBandsDb = [];
     let rawCapturedBandsDb = [];
 
+    // Array per gestire il Peak Release per ogni banda
+    let peakValues = [];
+    let peakTimes = [];
+
     let audioCtx = null;
     let analyser = null;
     let gainNode = null;
@@ -300,7 +300,6 @@
     let isFrozen = false;
     let hasGrabbed = false;
 
-    // Generatore rumore interno
     let noiseSource = null;
     let activeNoiseType = null;
 
@@ -344,6 +343,8 @@
         currentBandsDb = new Array(numBands).fill(-100);
         frozenBandsDb = new Array(numBands).fill(-100);
         rawCapturedBandsDb = new Array(numBands).fill(0);
+        peakValues = new Array(numBands).fill(-60);
+        peakTimes = new Array(numBands).fill(0);
         hasGrabbed = false;
         updateEQGuide();
     }
@@ -544,6 +545,8 @@
         stopInternalNoise();
         calibrationOffsets.fill(0);
         rawCapturedBandsDb.fill(0);
+        peakValues.fill(-60);
+        peakTimes.fill(0);
         hasGrabbed = false;
         updateEQGuide();
     });
@@ -620,6 +623,7 @@
         }
 
         const bands = isFrozen ? frozenBandsDb : currentBandsDb;
+        const now = performance.now();
 
         const minDb = -60;
         const maxDb = 12;
@@ -648,10 +652,24 @@
         let isClipping = false;
 
         for (let i = 0; i < numBands; i++) {
-            if (bands[i] >= maxDb) isClipping = true;
+            const valDb = bands[i];
+            if (valDb >= maxDb) isClipping = true;
 
-            const valDb = Math.max(minDb, Math.min(maxDb, bands[i]));
-            const barHeight = ((valDb - minDb) / dbRange) * height;
+            // Logica Peak Release (Hold 2 secondi, poi decay e fade-out)
+            if (valDb > peakValues[i]) {
+                peakValues[i] = valDb;
+                peakTimes[i] = now;
+            } else {
+                const elapsed = now - peakTimes[i];
+                if (elapsed > 2000) {
+                    // Dopo 2 secondi il picco inizia a scendere
+                    peakValues[i] -= 0.6;
+                    if (peakValues[i] < valDb) peakValues[i] = valDb;
+                }
+            }
+
+            const clampedVal = Math.max(minDb, Math.min(maxDb, valDb));
+            const barHeight = ((clampedVal - minDb) / dbRange) * height;
             const x = paddingLeft + i * totalBarWidth;
             const y = height - barHeight;
 
@@ -662,6 +680,22 @@
 
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
             ctx.fillRect(x, y, barWidth, barHeight);
+
+            // Disegno del segmento Peak Release con Fade Out
+            const peakClamped = Math.max(minDb, Math.min(maxDb, peakValues[i]));
+            const peakY = height - ((peakClamped - minDb) / dbRange) * height;
+            
+            const timeSincePeak = now - peakTimes[i];
+            let peakAlpha = 1.0;
+            if (timeSincePeak > 2000) {
+                // Fade out graduale nell'arco di 1 secondo successivo
+                peakAlpha = Math.max(0, 1 - (timeSincePeak - 2000) / 1000);
+            }
+
+            if (peakAlpha > 0) {
+                ctx.fillStyle = isFrozen ? `rgba(255, 145, 0, ${peakAlpha})` : `rgba(255, 255, 255, ${peakAlpha})`;
+                ctx.fillRect(x, peakY - 3, barWidth, 3);
+            }
 
             let showLabel = false;
             if (numBands === 31) {
