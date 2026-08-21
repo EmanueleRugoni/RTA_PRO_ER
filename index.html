@@ -255,9 +255,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 10px;
-            max-height: 800px; /* Altezza espansa per visualizzare molte più celle contemporaneamente[cite: 1] */
-            overflow-y: auto;
-            padding-right: 5px;
+            /* Adattamento automatico senza slider */
         }
         .eq-card {
             background: #ffffff;
@@ -427,7 +425,6 @@
 
     window.addEventListener('touchend', () => { isDraggingKnob = false; });
 
-    // Ricalcola la guida EQ in tempo reale se modifichi la soglia manuale
     eqThresholdInput.addEventListener('input', () => {
         if (hasGrabbed) {
             updateEQGuide();
@@ -695,7 +692,6 @@
             if (suggestedGain > 6) suggestedGain = 6;
             if (suggestedGain < -12) suggestedGain = -12;
 
-            // Utilizza la soglia inserita manualmente dall'utente[cite: 1]
             if (Math.abs(suggestedGain) >= manualThreshold) {
                 countAdjustments++;
                 const card = document.createElement('div');
@@ -768,6 +764,9 @@
         const dbRange = maxDb - minDb;
 
         const paddingLeft = 70;
+        const paddingTop = 25;    // Spazio di sicurezza superiore
+        const paddingBottom = 25; // Spazio di sicurezza inferiore
+        const drawingHeight = height - paddingTop - paddingBottom;
 
         ctx.strokeStyle = '#252836';
         ctx.lineWidth = 1;
@@ -778,7 +777,7 @@
 
         const step = maxDb > 140 ? 30 : 20;
         for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
-            const y = height - ((db - minDb) / dbRange) * height;
+            const y = paddingTop + drawingHeight - ((db - minDb) / dbRange) * drawingHeight;
             ctx.beginPath();
             ctx.moveTo(paddingLeft, y);
             ctx.lineTo(width, y);
@@ -811,9 +810,9 @@
             }
 
             const clampedVal = Math.max(minDb, Math.min(maxDb, valDb));
-            const barHeight = ((clampedVal - minDb) / dbRange) * height;
+            const barHeight = ((clampedVal - minDb) / dbRange) * drawingHeight;
             const x = paddingLeft + i * totalBarWidth;
-            const y = height - barHeight;
+            const y = paddingTop + drawingHeight - barHeight;
 
             const gradient = ctx.createLinearGradient(0, height, 0, 0);
             gradient.addColorStop(0, '#00d2ff');
@@ -837,7 +836,7 @@
             }
 
             const peakClamped = Math.max(minDb, Math.min(maxDb, peakValues[i]));
-            const peakY = height - ((peakClamped - minDb) / dbRange) * height;
+            const peakY = paddingTop + drawingHeight - ((peakClamped - minDb) / dbRange) * drawingHeight;
             
             const timeSincePeak = now - peakTimes[i];
             let peakAlpha = 1.0;
@@ -864,7 +863,7 @@
                 ctx.textBaseline = 'alphabetic';
                 const freq = bandFrequencies[i];
                 let label = freq >= 1000 ? (freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1) + 'k' : Math.round(freq);
-                ctx.fillText(label, x + totalBarWidth / 2, height - 10);
+                ctx.fillText(label, x + totalBarWidth / 2, height - 8);
             }
         }
 
@@ -873,7 +872,7 @@
             ctx.font = 'bold 16px sans-serif';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillText('CLIP / PEAK[cite: 1]', width - 15, 30);
+            ctx.fillText('CLIP / PEAK[cite: 1]', width - 15, 20);
         }
     }
 </script>
