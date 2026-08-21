@@ -199,7 +199,7 @@
             letter-spacing: 2px;
             font-family: monospace;
         }
-        /* Pannello Guida EQ con sfondo chiaro e font nero */
+        /* Pannello Guida EQ con caratteri ingranditi del doppio */
         .eq-guide-panel {
             margin-top: 15px;
             background: #14161d;
@@ -218,36 +218,36 @@
             margin-bottom: 12px;
         }
         .eq-guide-title {
-            font-size: 0.95rem;
+            font-size: 1.8rem; /* Ingrandito del doppio */
             color: #d4af37;
             text-transform: uppercase;
             font-weight: bold;
         }
         .eq-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 8px;
-            max-height: 160px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            max-height: 220px;
             overflow-y: auto;
             padding-right: 5px;
         }
         .eq-card {
             background: #ffffff;
             border: 1px solid #d1d5db;
-            border-radius: 4px;
-            padding: 8px;
+            border-radius: 6px;
+            padding: 12px;
             text-align: center;
         }
-        .eq-card.cut { border-color: #ef4444; border-width: 2px; }
-        .eq-card.boost { border-color: #22c55e; border-width: 2px; }
+        .eq-card.cut { border-color: #ef4444; border-width: 3px; }
+        .eq-card.boost { border-color: #22c55e; border-width: 3px; }
         .eq-freq { 
-            font-size: 0.85rem; 
+            font-size: 1.7rem; /* Ingrandito del doppio (da 0.85rem) */
             color: #000000; 
             font-weight: bold;
-            margin-bottom: 4px; 
+            margin-bottom: 6px; 
         }
         .eq-gain { 
-            font-size: 1.1rem; 
+            font-size: 2.2rem; /* Ingrandito del doppio (da 1.1rem) */
             font-weight: 900;
             color: #000000; 
         }
@@ -296,11 +296,11 @@
         <div id="dbReadout" class="db-value-large">- - - dB SPL</div>
     </div>
 
-    <!-- Tabella Guida Correzione EQ con font nero -->
+    <!-- Tabella Guida Correzione EQ con font nero e caratteri ingranditi -->
     <div id="eqGuidePanel" class="eq-guide-panel">
         <div class="eq-guide-header">
             <span class="eq-guide-title">Tabella Guida Correzione Equalizzatore Impianto</span>
-            <span id="guideStatus" style="font-size: 0.8rem; color: #888;">Esegui un "GRAB" o "POINT ZERO" per generare la guida</span>
+            <span id="guideStatus" style="font-size: 1.5rem; color: #888;">Esegui un "GRAB" o "POINT ZERO" per generare la guida</span>
         </div>
         <div id="eqGrid" class="eq-grid"></div>
     </div>
@@ -334,6 +334,7 @@
     let noiseSource = null;
     let activeNoiseType = null;
     let currentMicDb = 0.0;
+    let dynamicMaxDb = 120;
 
     const canvas = document.getElementById('rtaCanvas');
     const ctx = canvas.getContext('2d');
@@ -420,10 +421,10 @@
         }
 
         calibrationOffsets = new Array(numBands).fill(0);
-        currentBandsDb = new Array(numBands).fill(-100);
-        frozenBandsDb = new Array(numBands).fill(-100);
+        currentBandsDb = new Array(numBands).fill(0);
+        frozenBandsDb = new Array(numBands).fill(0);
         rawCapturedBandsDb = new Array(numBands).fill(0);
-        peakValues = new Array(numBands).fill(-60);
+        peakValues = new Array(numBands).fill(0);
         peakTimes = new Array(numBands).fill(0);
         hasGrabbed = false;
         updateEQGuide();
@@ -592,7 +593,8 @@
                 bandDb = 10 * Math.log10(sumEnergy / count);
             }
 
-            currentBandsDb[i] = bandDb - calibrationOffsets[i];
+            let splValue = bandDb + 94;
+            currentBandsDb[i] = Math.max(0, splValue - calibrationOffsets[i]);
         }
     }
 
@@ -602,7 +604,7 @@
         let totalDb = 0;
         let validBands = 0;
         for (let i = 0; i < numBands; i++) {
-            if (currentBandsDb[i] > -90) {
+            if (currentBandsDb[i] > 10) {
                 totalDb += currentBandsDb[i];
                 validBands++;
             }
@@ -611,7 +613,7 @@
 
         for (let i = 0; i < numBands; i++) {
             rawCapturedBandsDb[i] = currentBandsDb[i] - avgDb;
-            calibrationOffsets[i] += currentBandsDb[i];
+            calibrationOffsets[i] += (currentBandsDb[i] - avgDb);
         }
 
         hasGrabbed = true;
@@ -625,7 +627,7 @@
         stopInternalNoise();
         calibrationOffsets.fill(0);
         rawCapturedBandsDb.fill(0);
-        peakValues.fill(-60);
+        peakValues.fill(0);
         peakTimes.fill(0);
         hasGrabbed = false;
         updateEQGuide();
@@ -668,7 +670,7 @@
         }
 
         if (countAdjustments === 0) {
-            eqGrid.innerHTML = '<div style="color:#059669; font-size:0.9rem; font-weight:bold; padding:10px;">La risposta dell\'impianto è già ottimale (deviazioni entro +/- 1.5 dB).</div>';
+            eqGrid.innerHTML = '<div style="color:#059669; font-size:1.4rem; font-weight:bold; padding:10px;">La risposta dell\'impianto è già ottimale (deviazioni entro +/- 1.5 dB).</div>';
         }
     }
 
@@ -705,8 +707,20 @@
         const bands = isFrozen ? frozenBandsDb : currentBandsDb;
         const now = performance.now();
 
-        const minDb = -60;
-        const maxDb = 12;
+        let maxValInBands = 0;
+        for (let i = 0; i < numBands; i++) {
+            if (bands[i] > maxValInBands) maxValInBands = bands[i];
+        }
+
+        if (maxValInBands > dynamicMaxDb) {
+            dynamicMaxDb = Math.ceil(maxValInBands / 10) * 10 + 10;
+        } else if (dynamicMaxDb > 120) {
+            dynamicMaxDb -= 0.4;
+            if (dynamicMaxDb < 120) dynamicMaxDb = 120;
+        }
+
+        const minDb = 0;
+        const maxDb = dynamicMaxDb;
         const dbRange = maxDb - minDb;
 
         ctx.strokeStyle = '#252836';
@@ -714,13 +728,14 @@
         ctx.fillStyle = '#555e75';
         ctx.font = '10px sans-serif';
 
-        for (let db = maxDb; db >= minDb; db -= 12) {
+        const step = maxDb > 140 ? 30 : 20;
+        for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
             const y = height - ((db - minDb) / dbRange) * height;
             ctx.beginPath();
             ctx.moveTo(0, y);
             ctx.lineTo(width, y);
             ctx.stroke();
-            ctx.fillText(`${db > 0 ? '+' + db : db} dB`, 8, y - 4);
+            ctx.fillText(`${db} dB`, 8, y - 4);
         }
 
         const paddingLeft = 35;
@@ -741,7 +756,7 @@
             } else {
                 const elapsed = now - peakTimes[i];
                 if (elapsed > 2000) {
-                    peakValues[i] -= 0.6;
+                    peakValues[i] -= 1.0;
                     if (peakValues[i] < valDb) peakValues[i] = valDb;
                 }
             }
@@ -759,13 +774,12 @@
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
             ctx.fillRect(x, y, barWidth, barHeight);
 
-            // DB ingranditi del doppio (18px monospace anziché 9px)
             if (barHeight > 40) {
                 ctx.save();
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 18px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(valDb.toFixed(0) + 'd', x + totalBarWidth / 2, y + 22);
+                ctx.fillText(valDb.toFixed(0), x + totalBarWidth / 2, y + 22);
                 ctx.restore();
             }
 
@@ -790,7 +804,6 @@
                 showLabel = (i % 8 === 0 || i === 119);
             }
 
-            // Frequenze ingrandite del doppio (20px bold sans-serif anziché 10px)
             if (showLabel) {
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 20px sans-serif';
