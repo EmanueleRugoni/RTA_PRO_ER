@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RTA PRO — goldtrackER</title>
-    <!-- Favicon basata su goldtrackER.png -->
+    <!-- Favicon basata su goldtrackER.png[cite: 1] -->
     <link rel="icon" type="image/png" href="goldtrackER.png">
     <style>
         * {
@@ -232,7 +232,7 @@
             padding-right: 5px;
         }
         .eq-card {
-            background: #ffffff; /* Sfondo chiaro per la tabella EQ */
+            background: #ffffff;
             border: 1px solid #d1d5db;
             border-radius: 4px;
             padding: 8px;
@@ -242,14 +242,14 @@
         .eq-card.boost { border-color: #22c55e; border-width: 2px; }
         .eq-freq { 
             font-size: 0.85rem; 
-            color: #000000; /* Font nero per le frequenze */
+            color: #000000; 
             font-weight: bold;
             margin-bottom: 4px; 
         }
         .eq-gain { 
             font-size: 1.1rem; 
             font-weight: 900;
-            color: #000000; /* Font nero per i valori dB */
+            color: #000000; 
         }
         .status { font-size: 0.8rem; color: #888; }
     </style>
@@ -759,12 +759,13 @@
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
             ctx.fillRect(x, y, barWidth, barHeight);
 
-            if (barHeight > 30) {
+            // DB ingranditi del doppio (18px monospace anziché 9px)
+            if (barHeight > 40) {
                 ctx.save();
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 9px monospace';
+                ctx.font = 'bold 18px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(valDb.toFixed(0) + 'd', x + totalBarWidth / 2, y + 14);
+                ctx.fillText(valDb.toFixed(0) + 'd', x + totalBarWidth / 2, y + 22);
                 ctx.restore();
             }
 
@@ -789,13 +790,14 @@
                 showLabel = (i % 8 === 0 || i === 119);
             }
 
+            // Frequenze ingrandite del doppio (20px bold sans-serif anziché 10px)
             if (showLabel) {
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 10px sans-serif';
+                ctx.font = 'bold 20px sans-serif';
                 ctx.textAlign = 'center';
                 const freq = bandFrequencies[i];
                 let label = freq >= 1000 ? (freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1) + 'k' : Math.round(freq);
-                ctx.fillText(label, x + totalBarWidth / 2, height - 6);
+                ctx.fillText(label, x + totalBarWidth / 2, height - 10);
             }
         }
 
