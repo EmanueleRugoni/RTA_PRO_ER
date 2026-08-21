@@ -199,7 +199,6 @@
             letter-spacing: 2px;
             font-family: monospace;
         }
-        /* Pannello Guida EQ con caratteri ingranditi del doppio */
         .eq-guide-panel {
             margin-top: 15px;
             background: #14161d;
@@ -725,8 +724,8 @@
 
         ctx.strokeStyle = '#252836';
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#8b94a5'; // Schiarito leggermente per maggiore contrasto
-        ctx.font = 'bold 20px sans-serif'; // Caratteri asse laterale raddoppiati
+        ctx.fillStyle = '#ffffff'; // Testo asse laterale bianco brillante
+        ctx.font = 'bold 28px sans-serif'; // Caratteri asse laterale nettamente ingranditi
 
         const step = maxDb > 140 ? 30 : 20;
         for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
@@ -735,10 +734,10 @@
             ctx.moveTo(0, y);
             ctx.lineTo(width, y);
             ctx.stroke();
-            ctx.fillText(`${db} dB`, 8, y - 6);
+            ctx.fillText(`${db} dB`, 10, y + 9); // Posizionato e centrato verticalmente rispetto alla tacca
         }
 
-        const paddingLeft = 65; // Margine aumentato per contenere i caratteri grandi
+        const paddingLeft = 105; // Margine sinistro ampio per accogliere i caratteri ingranditi
         const availableWidth = width - paddingLeft;
         const barGap = numBands === 31 ? 2 : 1;
         const totalBarWidth = availableWidth / numBands;
@@ -816,8 +815,8 @@
 
         if (isClipping) {
             ctx.fillStyle = '#ff1744';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText('CLIP / PEAK', width - 95, 25);
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText('CLIP / PEAK', width - 110, 30);
         }
     }
 </script>
