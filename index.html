@@ -54,7 +54,7 @@
             margin-bottom: 15px;
             align-items: center;
         }
-        /* Rotellina (Knob) Mic Gain spostata a destra */
+        /* Rotellina (Knob) Mic Gain a destra */
         .knob-control {
             display: flex;
             flex-direction: column;
@@ -64,7 +64,7 @@
             border: 1px solid #3d4255;
             padding: 6px 14px;
             border-radius: 6px;
-            margin-left: auto; /* Spinge il blocco completamente a destra */
+            margin-left: auto;
         }
         .knob-label {
             font-size: 0.7rem;
@@ -199,6 +199,7 @@
             letter-spacing: 2px;
             font-family: monospace;
         }
+        /* Pannello Guida EQ con sfondo chiaro e font nero */
         .eq-guide-panel {
             margin-top: 15px;
             background: #14161d;
@@ -231,18 +232,25 @@
             padding-right: 5px;
         }
         .eq-card {
-            background: #1d202b;
-            border: 1px solid #2e3344;
+            background: #ffffff; /* Sfondo chiaro per la tabella EQ */
+            border: 1px solid #d1d5db;
             border-radius: 4px;
             padding: 8px;
             text-align: center;
         }
-        .eq-card.cut { border-color: #ff5252; }
-        .eq-card.boost { border-color: #00e676; }
-        .eq-freq { font-size: 0.8rem; color: #a0a5b5; margin-bottom: 4px; }
-        .eq-gain { font-size: 1rem; font-weight: bold; }
-        .eq-card.cut .eq-gain { color: #ff5252; }
-        .eq-card.boost .eq-gain { color: #00e676; }
+        .eq-card.cut { border-color: #ef4444; border-width: 2px; }
+        .eq-card.boost { border-color: #22c55e; border-width: 2px; }
+        .eq-freq { 
+            font-size: 0.85rem; 
+            color: #000000; /* Font nero per le frequenze */
+            font-weight: bold;
+            margin-bottom: 4px; 
+        }
+        .eq-gain { 
+            font-size: 1.1rem; 
+            font-weight: 900;
+            color: #000000; /* Font nero per i valori dB */
+        }
         .status { font-size: 0.8rem; color: #888; }
     </style>
 </head>
@@ -269,7 +277,6 @@
         <button id="btn-freeze">Freeze</button>
         <button id="btn-toggle-guide">Guida EQ</button>
 
-        <!-- Rotellina Mic Gain posizionata a destra con doppio click per reset a 0dB -->
         <div class="knob-control">
             <span class="knob-label">Mic Gain</span>
             <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare. Doppio click per azzerare a 0dB">
@@ -289,10 +296,10 @@
         <div id="dbReadout" class="db-value-large">- - - dB SPL</div>
     </div>
 
-    <!-- Pannello Guida Correzione EQ -->
+    <!-- Tabella Guida Correzione EQ con font nero -->
     <div id="eqGuidePanel" class="eq-guide-panel">
         <div class="eq-guide-header">
-            <span class="eq-guide-title">Suggerimenti Correzione Equalizzatore Impianto</span>
+            <span class="eq-guide-title">Tabella Guida Correzione Equalizzatore Impianto</span>
             <span id="guideStatus" style="font-size: 0.8rem; color: #888;">Esegui un "GRAB" o "POINT ZERO" per generare la guida</span>
         </div>
         <div id="eqGrid" class="eq-grid"></div>
@@ -354,7 +361,6 @@
         e.preventDefault();
     });
 
-    // Doppio click sulla rotellina per resettare a 0 dB
     micKnob.addEventListener('dblclick', () => {
         currentMicDb = 0.0;
         updateKnobUI();
@@ -662,7 +668,7 @@
         }
 
         if (countAdjustments === 0) {
-            eqGrid.innerHTML = '<div style="color:#00e676; font-size:0.9rem; padding:10px;">La risposta dell\'impianto è già ottimale (deviazioni entro +/- 1.5 dB).</div>';
+            eqGrid.innerHTML = '<div style="color:#059669; font-size:0.9rem; font-weight:bold; padding:10px;">La risposta dell\'impianto è già ottimale (deviazioni entro +/- 1.5 dB).</div>';
         }
     }
 
@@ -753,13 +759,11 @@
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
             ctx.fillRect(x, y, barWidth, barHeight);
 
-            // Stampa ottimizzata dei valori dB centrati direttamente sopra o all'interno della colonna
             if (barHeight > 30) {
                 ctx.save();
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 9px monospace';
                 ctx.textAlign = 'center';
-                // Disegno centrato in orizzontale sull'intera larghezza della colonna
                 ctx.fillText(valDb.toFixed(0) + 'd', x + totalBarWidth / 2, y + 14);
                 ctx.restore();
             }
