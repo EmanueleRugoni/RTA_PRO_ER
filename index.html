@@ -722,22 +722,25 @@
         const maxDb = dynamicMaxDb;
         const dbRange = maxDb - minDb;
 
+        const paddingLeft = 115; // Spazio laterale riservato per la scala asse Y
+
         ctx.strokeStyle = '#252836';
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#ffffff'; // Testo asse laterale bianco brillante
-        ctx.font = 'bold 28px sans-serif'; // Caratteri asse laterale nettamente ingranditi
+        ctx.fillStyle = '#ffffff'; 
+        ctx.font = 'bold 22px sans-serif'; 
+        ctx.textAlign = 'right'; // Allineamento a destra dei numeri per evitare troncamenti
+        ctx.textBaseline = 'middle'; // Centratura verticale precisa sulla linea
 
         const step = maxDb > 140 ? 30 : 20;
         for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
             const y = height - ((db - minDb) / dbRange) * height;
             ctx.beginPath();
-            ctx.moveTo(0, y);
+            ctx.moveTo(paddingLeft, y);
             ctx.lineTo(width, y);
             ctx.stroke();
-            ctx.fillText(`${db} dB`, 10, y + 9); // Posizionato e centrato verticalmente rispetto alla tacca
+            ctx.fillText(`${db} dB`, paddingLeft - 15, y); // Posizionati nello spazio a sinistra del grafico, perfettamente leggibili
         }
 
-        const paddingLeft = 105; // Margine sinistro ampio per accogliere i caratteri ingranditi
         const availableWidth = width - paddingLeft;
         const barGap = numBands === 31 ? 2 : 1;
         const totalBarWidth = availableWidth / numBands;
@@ -778,6 +781,7 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 18px monospace';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
                 ctx.fillText(valDb.toFixed(0), x + totalBarWidth / 2, y + 22);
                 ctx.restore();
             }
@@ -807,6 +811,7 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 20px sans-serif';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
                 const freq = bandFrequencies[i];
                 let label = freq >= 1000 ? (freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1) + 'k' : Math.round(freq);
                 ctx.fillText(label, x + totalBarWidth / 2, height - 10);
@@ -816,7 +821,9 @@
         if (isClipping) {
             ctx.fillStyle = '#ff1744';
             ctx.font = 'bold 16px sans-serif';
-            ctx.fillText('CLIP / PEAK', width - 110, 30);
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText('CLIP / PEAK', width - 15, 30);
         }
     }
 </script>
