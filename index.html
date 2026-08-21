@@ -108,21 +108,25 @@
         button#btn-start:hover {
             background: #00e676;
         }
-        button#btn-pink {
+        button#btn-pink.active-noise {
             background: #e91e63;
-            border-color: #e91e63;
+            border-color: #fff;
+            box-shadow: 0 0 10px #e91e63;
+        }
+        button#btn-pink {
+            background: #ad1457;
+            border-color: #ad1457;
             color: #fff;
         }
-        button#btn-pink:hover {
-            background: #f06292;
+        button#btn-white.active-noise {
+            background: #00bcd4;
+            border-color: #fff;
+            box-shadow: 0 0 10px #00bcd4;
         }
         button#btn-white {
-            background: #607d8b;
-            border-color: #607d8b;
+            background: #37474f;
+            border-color: #37474f;
             color: #fff;
-        }
-        button#btn-white:hover {
-            background: #78909c;
         }
         button#btn-zero {
             background: #d4af37;
@@ -295,6 +299,10 @@
     let isFrozen = false;
     let hasGrabbed = false;
 
+    // Generatore rumore interno
+    let noiseSource = null;
+    let activeNoiseType = null; // 'pink' o 'white'
+
     const canvas = document.getElementById('rtaCanvas');
     const ctx = canvas.getContext('2d');
     const statusEl = document.getElementById('status');
@@ -305,6 +313,8 @@
     const gainSlider = document.getElementById('gainSlider');
     const gainVal = document.getElementById('gainVal');
     const dbReadout = document.getElementById('dbReadout');
+    const btnPink = document.getElementById('btn-pink');
+    const btnWhite = document.getElementById('btn-white');
 
     gainSlider.addEventListener('input', (e) => {
         const val = parseFloat(e.target.value);
@@ -353,6 +363,7 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
+    // Inizializzazione Audio e Microfono
     document.getElementById('btn-start').addEventListener('click', async () => {
         if (isRunning) return;
 
@@ -382,10 +393,78 @@
         }
     });
 
+    // Funzione per avviare/fermare il generatore interno di rumore
+    function toggleInternalNoise(type) {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        // Se lo stesso rumore è già attivo, fermalo
+        if (activeNoiseType === type) {
+            stopInternalNoise();
+            return;
+        }
+
+        // Altrimenti ferma eventuale rumore precedente e avvia il nuovo
+        stopInternalNoise();
+        activeNoiseType = type;
+
+        const bufferSize = audioCtx.sampleRate * 5;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = buffer.getChannelData(0);
+
+        if (type === 'pink') {
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+                b6 = white * 0.115926;
+            }
+            btnPink.classList.add('active-noise');
+        } else if (type === 'white') {
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = (Math.random() * 2 - 1) * 0.08;
+            }
+            btnWhite.classList.add('active-noise');
+        }
+
+        noiseSource = audioCtx.createBufferSource();
+        noiseSource.buffer = buffer;
+        noiseSource.loop = true;
+        noiseSource.connect(audioCtx.destination);
+        noiseSource.start();
+
+        // Esegue automaticamente il grab di calibrazione
+        grabCalibration();
+    }
+
+    function stopInternalNoise() {
+        if (noiseSource) {
+            try { noiseSource.stop(); } catch(e) {}
+            noiseSource.disconnect();
+            noiseSource = null;
+        }
+        activeNoiseType = null;
+        btnPink.classList.remove('active-noise');
+        btnWhite.classList.remove('active-noise');
+    }
+
+    btnPink.addEventListener('click', () => toggleInternalNoise('pink'));
+    btnWhite.addEventListener('click', () => toggleInternalNoise('white'));
+
     function calculateBands() {
         if (!analyser) return;
 
-        // Analisi RMS assoluta nel dominio del tempo (indipendente da Grab, White, Pink o offset)
+        // Analisi RMS assoluta nel dominio del tempo per il display dB SPL
         const timeData = new Float32Array(analyser.fftSize);
         analyser.getFloatTimeDomainData(timeData);
         let sumSquares = 0;
@@ -441,7 +520,7 @@
         }
     }
 
-    // Funzioni Grab (Pink, White, Point Zero) - agiscono solo sulle bande e sulla guida EQ
+    // Point Zero Grab
     function grabCalibration() {
         if (!isRunning) return;
 
@@ -465,12 +544,11 @@
         updateEQGuide();
     }
 
-    document.getElementById('btn-pink').addEventListener('click', grabCalibration);
-    document.getElementById('btn-white').addEventListener('click', grabCalibration);
     document.getElementById('btn-zero').addEventListener('click', grabCalibration);
 
     // Tasto RESET
     document.getElementById('btn-reset').addEventListener('click', () => {
+        stopInternalNoise();
         calibrationOffsets.fill(0);
         rawCapturedBandsDb.fill(0);
         hasGrabbed = false;
