@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RTA PRO — goldtrackER</title>
-    <!-- Favicon basata su goldtrackER.png[cite: 1] -->
+    <!-- Favicon basata su goldtrackER.png -->
     <link rel="icon" type="image/png" href="goldtrackER.png">
     <style>
         * {
@@ -218,7 +218,7 @@
             margin-bottom: 12px;
         }
         .eq-guide-title {
-            font-size: 1.8rem; /* Ingrandito del doppio */
+            font-size: 1.8rem;
             color: #d4af37;
             text-transform: uppercase;
             font-weight: bold;
@@ -241,13 +241,13 @@
         .eq-card.cut { border-color: #ef4444; border-width: 3px; }
         .eq-card.boost { border-color: #22c55e; border-width: 3px; }
         .eq-freq { 
-            font-size: 1.7rem; /* Ingrandito del doppio (da 0.85rem) */
+            font-size: 1.7rem; 
             color: #000000; 
             font-weight: bold;
             margin-bottom: 6px; 
         }
         .eq-gain { 
-            font-size: 2.2rem; /* Ingrandito del doppio (da 1.1rem) */
+            font-size: 2.2rem; 
             font-weight: 900;
             color: #000000; 
         }
@@ -725,8 +725,8 @@
 
         ctx.strokeStyle = '#252836';
         ctx.lineWidth = 1;
-        ctx.fillStyle = '#555e75';
-        ctx.font = '10px sans-serif';
+        ctx.fillStyle = '#8b94a5'; // Schiarito leggermente per maggiore contrasto
+        ctx.font = 'bold 20px sans-serif'; // Caratteri asse laterale raddoppiati
 
         const step = maxDb > 140 ? 30 : 20;
         for (let db = Math.floor(maxDb); db >= minDb; db -= step) {
@@ -735,10 +735,10 @@
             ctx.moveTo(0, y);
             ctx.lineTo(width, y);
             ctx.stroke();
-            ctx.fillText(`${db} dB`, 8, y - 4);
+            ctx.fillText(`${db} dB`, 8, y - 6);
         }
 
-        const paddingLeft = 35;
+        const paddingLeft = 65; // Margine aumentato per contenere i caratteri grandi
         const availableWidth = width - paddingLeft;
         const barGap = numBands === 31 ? 2 : 1;
         const totalBarWidth = availableWidth / numBands;
@@ -816,8 +816,8 @@
 
         if (isClipping) {
             ctx.fillStyle = '#ff1744';
-            ctx.font = 'bold 12px sans-serif';
-            ctx.fillText('CLIP / PEAK', width - 80, 20);
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('CLIP / PEAK', width - 95, 25);
         }
     }
 </script>
