@@ -54,7 +54,7 @@
             margin-bottom: 15px;
             align-items: center;
         }
-        /* Rotellina (Knob) Mic Gain */
+        /* Rotellina (Knob) Mic Gain spostata a destra */
         .knob-control {
             display: flex;
             flex-direction: column;
@@ -64,6 +64,7 @@
             border: 1px solid #3d4255;
             padding: 6px 14px;
             border-radius: 6px;
+            margin-left: auto; /* Spinge il blocco completamente a destra */
         }
         .knob-label {
             font-size: 0.7rem;
@@ -198,7 +199,6 @@
             letter-spacing: 2px;
             font-family: monospace;
         }
-        /* Pannello Guida EQ ripristinato */
         .eq-guide-panel {
             margin-top: 15px;
             background: #14161d;
@@ -262,23 +262,24 @@
             <option value="120">120 Bande (Alta Risoluzione)</option>
         </select>
 
-        <div class="knob-control">
-            <span class="knob-label">Mic Gain</span>
-            <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare">
-                <div id="knobPointer" class="knob-pointer"></div>
-            </div>
-            <span id="knobVal" class="knob-val">0.0 dB</span>
-        </div>
-
         <button id="btn-pink">Pink Noise Grab</button>
         <button id="btn-white">White Noise Grab</button>
         <button id="btn-zero">Point Zero</button>
         <button id="btn-reset">Reset</button>
         <button id="btn-freeze">Freeze</button>
         <button id="btn-toggle-guide">Guida EQ</button>
+
+        <!-- Rotellina Mic Gain posizionata a destra con doppio click per reset a 0dB -->
+        <div class="knob-control">
+            <span class="knob-label">Mic Gain</span>
+            <div id="micKnob" class="knob" title="Trascina in alto/basso per regolare. Doppio click per azzerare a 0dB">
+                <div id="knobPointer" class="knob-pointer"></div>
+            </div>
+            <span id="knobVal" class="knob-val">0.0 dB</span>
+        </div>
     </div>
 
-    <!-- Grafico a tutto schermo con dB stampati direttamente sulle bande -->
+    <!-- Grafico a tutto schermo -->
     <div class="canvas-container">
         <canvas id="rtaCanvas"></canvas>
     </div>
@@ -288,7 +289,7 @@
         <div id="dbReadout" class="db-value-large">- - - dB SPL</div>
     </div>
 
-    <!-- Pannello Guida Correzione EQ ripristinato -->
+    <!-- Pannello Guida Correzione EQ -->
     <div id="eqGuidePanel" class="eq-guide-panel">
         <div class="eq-guide-header">
             <span class="eq-guide-title">Suggerimenti Correzione Equalizzatore Impianto</span>
@@ -351,6 +352,12 @@
         startY = e.clientY;
         startDb = currentMicDb;
         e.preventDefault();
+    });
+
+    // Doppio click sulla rotellina per resettare a 0 dB
+    micKnob.addEventListener('dblclick', () => {
+        currentMicDb = 0.0;
+        updateKnobUI();
     });
 
     window.addEventListener('mousemove', (e) => {
@@ -746,15 +753,14 @@
             ctx.fillStyle = isFrozen ? '#ff9100' : gradient;
             ctx.fillRect(x, y, barWidth, barHeight);
 
-            // Stampa del valore in dB direttamente sulla banda colorata (visibile se 31 bande o se la barra è sufficientemente alta)
-            if (numBands === 31 && barHeight > 35) {
+            // Stampa ottimizzata dei valori dB centrati direttamente sopra o all'interno della colonna
+            if (barHeight > 30) {
                 ctx.save();
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '9px monospace';
-                ctx.textAlign = 'right';
-                ctx.translate(x + barWidth / 2 + 3, y + 5);
-                ctx.rotate(-Math.PI / 2); // Testo verticale leggibile direttamente sulla barra
-                ctx.fillText(valDb.toFixed(0) + 'dB', 0, 0);
+                ctx.font = 'bold 9px monospace';
+                ctx.textAlign = 'center';
+                // Disegno centrato in orizzontale sull'intera larghezza della colonna
+                ctx.fillText(valDb.toFixed(0) + 'd', x + totalBarWidth / 2, y + 14);
                 ctx.restore();
             }
 
@@ -785,7 +791,7 @@
                 ctx.textAlign = 'center';
                 const freq = bandFrequencies[i];
                 let label = freq >= 1000 ? (freq / 1000).toFixed(freq % 1000 === 0 ? 0 : 1) + 'k' : Math.round(freq);
-                ctx.fillText(label, x + barWidth / 2, height - 6);
+                ctx.fillText(label, x + totalBarWidth / 2, height - 6);
             }
         }
 
